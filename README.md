@@ -20,236 +20,399 @@ To develop practical skills in deploying, managing, and securing server environm
 
 30 Day SOC Challenge
  
- 1st Day: Logical Diagram
-    This is the start of the 30 day SOC Challenge and the activity is to create a high level topology of the design that I will use. The following are the details of present in the topology
-	 1. Servers:
-	     a. Elk & Kibana
-		 b. Windows Server with RDP enabled
-		 c. Ubuntu Server with SSH enabled
-		 d. Fleet Server
-		 e. Ticket Server
-		 f. C2 Server Mythic
-	
-	 2. Laptops:
-	     a. For SOC Analyst
-		 b. For Attacker
-		 
-	 3. Cloud Gateway
-	
-	 4. Internet Gateway
-	
-	In the topology, interconnections are also present and in details
-	
-  
-  2nd Day: ELK Stack Introduction
-    In this part, I go deep dive with the ELK Tool and this is what I learned about:
-	 
-     ELK is an acronym for Elasticsearch, Logstash, and Kibana, which are three open-source tools commonly used together for log management and data analysis.
- 
-      Elasticsearch: A distributed search and analytics engine that stores and indexes data, making it easily searchable. It’s known for its speed and scalability.      
-
-      Logstash: A server-side data processing pipeline that ingests data from various sources, transforms it, and sends it to a "stash" like Elasticsearch. It is used to collect, parse, and enrich logs and other data.
-
-      Kibana: A data visualization tool that works on top of Elasticsearch. It allows users to explore and visualize data stored in Elasticsearch using interactive dashboards and charts.
-
-     Together, ELK is often used in security operations, IT monitoring, and other use cases where analyzing large volumes of log data is important. It's popular in building centralized logging solutions for searching, monitoring, and analyzing log data in real-time.
-	
-	
-  3rd Day: Elasticsearch Setup
-    In this day, I created an account in Vultr.com - a cloud infrastructure provider that offers a variety of cloud computing services, including virtual private servers (VPS), bare metal servers, block storage, and more. It’s known for providing scalable, high-performance infrastructure with a global presence, offering data centers in multiple locations around the world.
-	Then I created a new VM instance then I select Ubuntu Server version 22.04. This is where I will run the Elasticsearch. After that, I updated all the apps in the Ubuntu Server and then download the Elasticsearch via wget. After that I installed the Elasticsearch then tweak some configuration on VM Firewall so that it will not be available in the whole internet.
-	
- 
-  4th Day: Kibana Setup
-    On this day, Kibana is next to configure. Kibana is a powerful open-source data visualization and analytics tool that works on top of Elasticsearch, which is part of the Elastic Stack (formerly known as the ELK Stack: Elasticsearch, Logstash, Kibana). Kibana is primarily used to visualize large amounts of data and logs, making it useful for monitoring, reporting, and dashboard creation
-	Just like the Elasticsearch, the Kibana sofware is downloaded via wget. After installation, I must integrate the Kibana to Elasticsearch by creating a token from Elasticsearch then put it to Kibana. After the creation of token and accessing Kibana via a public IP, I have an issue which is I can't access the Kibana, so I make another firewall rules to allow my IP and allow the port 5601. After that it works well. I feel information overload from this but it is fun afterall.
-	
-	
-  5th Day: Windows Server 20222 Intallation
-    On this day, I configure the Windows Server 2022 to our Vultr Cloud. The installation is very easy and straighforward. This are the basic settings: CPU is 2 vcpu, 2gb Ram, 55gb storage, no autobackup and no IPv6. Also this Server has no VPC 2.0 because if this server is compromise, the other will also be compromise. After finishing this, I also update the topology design and the Server is outside the VCP 2.0. So that is how easy this activity today.
-
-
-  6th Day: Elastic Agent and Fleet Server Introduction
-    On this day, I learned introductin about Elastic Agent and Fleet Server.
-	
-	Elastic Agent - is like a heavy forwarder on Splunk. it is a unified, lightweight agent developed by Elastic that collects data from various systems and forwards it to the Elastic Stack for centralized monitoring, analysis, and security operations. It simplifies the process of managing multiple data shippers and beats (like Filebeat, Metricbeat, etc.) by consolidating them into a single, easily deployable agent. This agent can be deployed as standalone or fleet managed. Alternative to Elastic Agent, you can used what is called Beats
-	
-	Fleet Server - is a component within the Elastic Stack used to centrally manage and coordinate Elastic Agents. It acts as the communication hub for Elastic Agents deployed across different systems and environments, allowing administrators to manage, configure, and monitor agents at scale via Fleet, which is the management interface for Elastic Agents in Kibana.
-	
-	On this 30 day challenge, I will used the Elastic Agent and Fleet Server to managed the agents.
-	
-  7th Day: Elastic Agent and Fleet Server Setup
-	On this day, I created a new server which is the Fleet Server. The settings is just like the Windows Server with basic resources. But regarding the network, It is under the VPC 2.0 and not like the Windows Server 2022. After installation, it must be integrated to the ELK Stack Sever I created a few days ago. To do this is by setup a new Fleet Server from the menu un ELK then configure the IP Address, Firewall Policy including the port number (9200) and other settings. Then it should connect to our ELK Server.
-	Next is pushing an agent to our Windows Sever 2022. In our Fleet Server, I enrolled an elastic agent, then select Windows since our Server is a Windows based. After enrolling, I copied the srcipt that will be used. I login to the Windows Server and open the Power Shell and paste the script. Then it works. I now have agent installed in Windows Server 2022
-	
-  8th Day: What is Sysmon
-    This day is the introduction of Sysmon.System Monitor (Sysmon) is a Windows system service and device driver that, once installed on a system, remains resident across system reboots to monitor and log system activity to the Windows event log.
-
-	Sysmon includes the following capabilities:
-
-     Logs process creation with full command line for both current and parent processes.
-     Records the hash of process image files using SHA1 (the default), MD5, SHA256 or IMPHASH.
-	 Multiple hashes can be used at the same time.
-	 Includes a process GUID in process create events to allow for correlation of events even when Windows reuses process IDs.
-	 Includes a session GUID in each event to allow correlation of events on same logon session.
-	 Logs loading of drivers or DLLs with their signatures and hashes.
-	 Logs opens for raw read access of disks and volumes.
-	 Optionally logs network connections, including each connection’s source process, IP addresses, port numbers, hostnames and port names.
-	 Detects changes in file creation time to understand when a file was really created. Modification of file create timestamps is a technique commonly used by malware to cover its tracks.
-	 Automatically reload configuration if changed in the registry.
-	 Rule filtering to include or exclude certain events dynamically.
-	 Generates events from early in the boot process to capture activity made by even sophisticated kernel-mode malware.
-	
-  9th Day: Sysmon Installation
-    On this day, I am going to install Sysmon on the Windows Server 2022 and the following are the steps I have taken:
-	 1. Download the Sysmon from learn.microsoft.com and the latest version upon this writing is 15.15
-	 2. Extract the downloaded file
-	 3. Download the configuration file - OLAF at github page
-	 4. Select the 'sysmonconfig.xml', then select 'raw' and then right click and choose save as and save on sysmon directory
-	 5. Open the powershell with admin priviledge then go to the directory of sysmon
-	 6. Type .\sysmon.exe -i sysmonconfig.xml then hit enter then hit 'I accept'
-	 7. Wait for the installation to finish
-	 
-	That is how easy to install Sysmon and if you go to the event viewer, you can see a couple of events.
-	
-  10th Day: Ingesting Sysmon and Windows Defender Logs into Elastic Search
-    On this day, I configure Sysmon to forward logs to Elastic Search and the following are the steps I have done:
-	  
-	  Navigate to the Elastic GUI and locate the “Add integration” button.
-
-	  In the search bar, type “Custom Windows Event logs” and select it.
-
-	  Click “Add custom Windows event logs” on the next screen.	
-
-	  Provide a name for the integration (e.g., “Sysmon Logs”) and a description (e.g., “Collect logs from Sysmon”).
-
-	  For the channel name, you’ll need to reference your Windows server:
-
-	  Open Event Viewer on your Windows server
-	    Navigate to Application and Services Logs > Microsoft > Windows > Sysmon > Operational
-	    Right-click and select Properties
-	    Copy the full name provided — this is your channel name
-	    Paste this into the Elastic GUI
-	
-	  When prompted, select your existing Windows Server as the host for these integrations.
-	  
-	 
-	I also repeat the above steps in Windows Defender 
-      
-	  Create a new integration named “Windows Defender Logs” with an appropriate description
-	  
-	  Locate the Windows Defender > Operational log in Event Viewer
-	  
-	  Copy the full name from Properties and paste into Elastic	
-	
-	So that is how easy to ingest Sysmon and Windows Defender Logs into Elastic Search
-	
+ Day 1: Mapping Out My SOC Kingdom
+Every security adventure needs a map! Today, I'm designing the blueprint for my SOC environment.
+[Insert your network diagram here - consider using tools like draw.io or Lucidchart]
+Here's a breakdown of the key components:
+•	ELK Stack: My central log management and analysis platform. Elasticsearch stores and indexes security logs, Logstash processes and enriches the data, and Kibana provides visualizations and dashboards.
+•	Windows Server: A vulnerable Windows server acting as a target for simulating RDP brute-force attacks and other Windows-specific threats.
+•	Ubuntu Server: A Linux server for simulating SSH brute-force attacks and other Linux-related security events.
+•	Fleet Server: Manages and controls my Elastic Agents, enabling data collection from multiple sources.
+•	Ticketing System: osTicket will help track security alerts, assign them to analysts, and manage incident response.
+•	Mythic C2 Server: Allows me to simulate advanced attacker techniques using the Mythic C2 framework.
+•	Analyst Laptop: My main workstation for monitoring, analyzing, and responding to security events.
+•	Attacker Laptop: Used to launch simulated attacks against my target servers.
+•	Cloud Gateway and Internet Gateway: Represent the entry and exit points for network traffic in my cloud environment.
+Day 2: ELK Stack – My Log Analysis Powerhouse
+Today, I'm exploring the ELK stack (Elasticsearch, Logstash, and Kibana). Elasticsearch is the brain, storing and indexing security logs. Logstash is the nervous system, collecting and enriching data. Kibana is the eyes, providing visualizations and dashboards for analysis.
+Day 3: Elasticsearch Setup – Building the Brain
+I'm setting up an Elasticsearch server on Vultr.com using an Ubuntu Server 22.04 instance.
+Here are the steps:
+1.	Create a Vultr Account: Sign up for an account at Vultr.com.
+2.	Deploy a New Instance: Choose a nearby server location, Cloud Compute as the server type, Ubuntu 22.04 as the operating system, and an appropriate server size. Add your SSH keys for secure access.
+3.	Connect to your Server: Use SSH to connect.
+4.	Update the System: 
+Bash
+sudo apt update
+sudo apt upgrade -y
+Use code with caution.
+5.	Install Elasticsearch: 
+o	Download: wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-8.10.2-amd64.deb (replace with the latest version)
+o	Install: sudo dpkg -i elasticsearch-8.10.2-amd64.deb
+6.	Configure Elasticsearch: Edit /etc/elasticsearch/elasticsearch.yml: 
+o	network.host: Your server's private IP or localhost.
+o	cluster.name: A unique name.
+7.	Start Elasticsearch: 
+Bash
+sudo systemctl enable elasticsearch.service
+sudo systemctl start elasticsearch.service
+Use code with caution.
+8.	Verify: curl -X GET "http://localhost:9200/"
+9.	Configure Firewall: Allow port 9200 (e.g., sudo ufw allow 9200/tcp).
+Day 4: Kibana Setup – The Eyes of My SOC
+Now, I'm adding Kibana to visualize my security data.
+Here's how:
+1.	Download and Install: 
+o	Download: wget https://artifacts.elastic.co/downloads/kibana/kibana-8.10.2-amd64.deb (replace with the latest version)
+o	Install: sudo dpkg -i kibana-8.10.2-amd64.deb
+2.	Configure Kibana: Edit /etc/kibana/kibana.yml: 
+o	server.host: Your server's public IP or localhost.
+o	elasticsearch.hosts: Your Elasticsearch instance's address.
+3.	Start Kibana: 
+Bash
+sudo systemctl enable kibana.service
+sudo systemctl start kibana.service
+Use code with caution.
+4.	Access Kibana: Go to http://<your_kibana_server_ip>:5601 in your browser.
+5.	Generate an Elasticsearch Token: 
+o	In Kibana, go to Stack Management > Security > API Keys.
+o	Create a new API key.
+6.	Configure Kibana to use the Token: Add elasticsearch.apiKey: <your_api_key> to kibana.yml.
+7.	Restart Kibana: sudo systemctl restart kibana.service
+8.	Configure Firewall: Allow port 5601 (e.g., sudo ufw allow 5601/tcp).
+Day 5: Windows Server 2022 – My Attack Surface
+I need a vulnerable target for attack simulations, so I'm setting up a Windows Server 2022 instance on Vultr. This server will be kept outside my VPC for isolation.
+Here's how:
+1.	Deploy a New Instance: 
+o	In Vultr, go to "Deploy New Instance."
+o	Server Location: Choose a nearby location.
+o	Server Type: Cloud Compute
+o	Operating System: Windows Server 2022
+o	Server Size: Choose an appropriate size (e.g., 2 vCPUs, 2GB RAM, 55GB storage).
+o	Disable automatic backups and IPv6.
+o	Important: Disable VPC for this server.
+2.	Connect to your Server: Use an RDP client with the provided administrator password and the server's public IP address.
+3.	Initial Server Setup: 
+o	Change the administrator password to a strong password.
+o	Temporarily disable the firewall for ease of setup, but remember to enable and configure it later.
+4.	Update the System: 
+o	Open Server Manager > Local Server.
+o	Disable IE Enhanced Security Configuration.
+o	Install all available updates from Windows Update.
+Day 6: Elastic Agent and Fleet Server – My Data Collection Squad
+Today, I'm learning about Elastic Agent and Fleet Server. Elastic Agent acts as data collectors on various systems, while Fleet Server is the central management point for these agents.
+Day 7: Deploying the Agents – Time for Action
+I'm setting up a Fleet Server on Vultr (within my VPC this time) and integrating it with my ELK stack. Then, I'll deploy an Elastic Agent to my Windows Server.
+Here's how I deployed the agent:
+1.	Set up Fleet Server: 
+o	Deploy a new Ubuntu Server instance on Vultr (similar to Day 3).
+o	In Kibana, go to Fleet and click Add Fleet Server.
+o	Follow the instructions to install and enroll the Fleet Server.
+2.	Deploy Elastic Agent to Windows Server: 
+o	In Kibana's Fleet section, click Add Agent.
+o	Select the "Windows" integration.
+o	Copy the provided PowerShell script.
+o	On your Windows Server, open PowerShell as administrator and paste the script.
+Day 8: Sysmon – The Windows Whisperer
+Sysmon is a powerful Windows system monitoring tool that logs detailed system activity to the Windows event log. This will be crucial for detecting and investigating suspicious activity.
+Day 9: Installing Sysmon – Unleashing the Guardian
+I'm installing Sysmon on my Windows Server.
+Here's how:
+1.	Download Sysmon: Get the latest version from Microsoft.
+2.	Download Configuration File: Get a configuration file (e.g., the OLAF configuration from GitHub).
+3.	Install Sysmon: 
+o	Open PowerShell as administrator.
+o	Navigate to the directory where you downloaded Sysmon.
+o	Run: .\sysmon.exe -i sysmonconfig.xml (replace with your configuration file name)
 
 
-  11th Day: Introduction to Brute Force Attack
-    On this day, I study  about Brute Force Attack. It is a trial-and-error method used to decode sensitive data. The most common applications for brute force attacks are cracking passwords and cracking encryption keys (keep reading to learn more about encryption keys). Other common targets for brute force attacks are API keys and SSH logins. Brute force password attacks are often carried out by scripts or bots that target a website's login page.
-	What differentiates brute force attacks from other cracking methods is that brute force attacks don’t employ an intellectual strategy; they simply try using different combinations of characters until the correct combination is found. This is kind of like a thief trying to break into a combo safe by attempting every possible combination of numbers until the safe opens.
-	
+Day 10: Ingesting Sysmon and Windows Defender Logs into Elasticsearch
+Now it's time to connect Sysmon and Windows Defender to my ELK stack. This way, I can centrally collect and analyze the security logs they generate. I'll do this by configuring custom Windows event log integrations in Elasticsearch.
+Here's the process:
+1.	Add Integrations in Kibana:
+o	In Kibana, navigate to Add Integrations.
+o	Search for "Custom Windows Event logs" and add this integration.
+2.	Configure Sysmon Integration:
+o	Name and Description: Give it a descriptive name like "Sysmon Logs."
+o	Channel Name: 
+	On your Windows Server, open Event Viewer.
+	Go to Application and Services Logs > Microsoft > Windows > Sysmon > Operational.
+	Right-click on "Operational" and select Properties.
+	Copy the "Full Name" from the Properties window. This is your channel name.
+	Paste this full name into the "Channel Name" field in Kibana.
+o	Host: Select your existing Windows Server as the host for this integration.
+o	Save and deploy the integration.
+3.	Configure Windows Defender Integration:
+o	Repeat the steps above for Windows Defender: 
+	Name: "Windows Defender Logs"
+	Channel Name: Find the full name of the "Operational" log under Application and Services Logs > Microsoft > Windows > Windows Defender in Event Viewer.
+o	Save and deploy the integration.
+With these integrations configured, Sysmon and Windows Defender logs will be forwarded to Elasticsearch, making them available for analysis and monitoring in Kibana.
+Day 11: Introduction to Brute Force Attacks
+Today, I'm learning about brute-force attacks, a common method where attackers systematically try different combinations of characters to guess passwords, API keys, or SSH logins. It's essential to understand this attack vector to strengthen my defenses.
+Day 12: Installation of Ubuntu Server version 24.02
+To broaden my attack surface, I'm adding an Ubuntu Server to my Vultr environment. This will allow me to simulate attacks against a Linux system, adding another dimension to my SOC challenge.
+Day 13: Installation of Agent in Ubuntu Server
+Just like with my Windows Server, I'm deploying an Elastic Agent to my Ubuntu Server. This ensures centralized visibility and management of security data from both Windows and Linux systems.
+Here's how:
+1.	Create Agent Policy: In Kibana's Fleet section, create a new agent policy with appropriate settings for your Ubuntu server.
+2.	Enroll a New Agent: Click "Add Agent," select the policy you created, and choose the "Linux" integration.
+3.	Copy the Installation Command: Copy the provided installation command.
+4.	SSH to Ubuntu Server: Connect to your Ubuntu server via SSH.
+5.	Execute the Command: Paste and run the installation command in your SSH session.
+Day 14: Creating Alerts and Dashboard in Kibana - SSH
+It's time to create alerts and a dashboard in Kibana to monitor for SSH brute-force attacks on my Ubuntu Server.
+Here's how:
+1.	Discover SSH Events:
+o	In Kibana, go to the "Discover" tab.
+o	Filter for events from your Ubuntu Server's agent.
+o	Analyze the SSH logs, focusing on fields like system.auth.ssh.event for authentication events.
+2.	Create an Alert:
+o	Go to the "Alerts" tab and create a new alert.
+o	Use a query to filter for failed SSH login attempts (e.g., system.auth.ssh.event: "failed").
+o	Set a threshold for the alert to trigger (e.g., a certain number of failed logins within a specific time frame).
+o	Configure notifications (email, Slack, etc.).
+3.	Build a Dashboard:
+o	Go to the "Dashboards" tab and create a new dashboard.
+o	Add visualizations to display relevant information, such as: 
+	A map showing the geographical location of SSH login attempts.
+	A bar chart showing the number of failed logins over time.
+	A table listing the usernames and IP addresses involved in failed logins.
+Day 15: Remote Desktop Protocol Introduction
+Today, I'm learning about the Remote Desktop Protocol (RDP), a valuable tool for remote access, but also a potential security risk if not properly secured. Attackers often exploit RDP vulnerabilities, including using brute-force attacks to gain unauthorized access.
+Day 16: Creating Alerts and Dashboard in Kibana - RDP Brute Force
+I'll set up alerts and a dashboard in Kibana specifically for RDP brute-force attacks against my Windows Server.
+Here's how:
+1.	Discover RDP Events:
+o	In Kibana, filter for Windows security events from your Windows Server.
+o	Focus on Event ID 4625 (failed login attempts).
+2.	Create an Alert:
+o	Create a new alert in Kibana.
+o	Use a query to filter for Event ID 4625 and other relevant criteria (e.g., repeated login attempts from the same IP address).
+o	Configure the alert threshold and notifications.
+3.	Build a Dashboard:
+o	Create a new dashboard in Kibana.
+o	Add visualizations to display information about RDP brute-force attempts, such as: 
+	A map showing the source of the attacks.
+	A line chart showing the trend of failed login attempts over time.
+	A table listing the usernames and IP addresses involved.
 
-  12th Day: Installation of Ubuntu Server version 24.02
-    On this day, I am going to install Ubuntu VM into our Vultr Cloud Provider. The process is like on my previous installation of Ubuntu Server. The specifications are not high. The given name is MyDFIR-Linux-regireyes19. Backup and IPv6 are disabled and no VPC also. 
-    
-	
-  13th Day: Installation of Agent in Ubuntu Server	
-	For the agent installation, just like also the previous installation, create first the agent policy and give it a name. After that click on the create agent and select the policy that I created. Then copy the installation script then SSH to the Ubuntu VM then paste what I copied. Then I wait and that's it. The installation of agent is done
+Day 17: Creating Alerts and Dashboard - with Maps
+I want to see the bigger picture of the attacks targeting my network. Today, I'm combining the alerts and dashboards I created for SSH and RDP brute-force attacks into a single, comprehensive view. Kibana's mapping capabilities will help me visualize where in the world these attacks are coming from.
+Here's how I created the combined map:
+1.	Create a New Map: In Kibana, go to the "Maps" tab and create a new map.
+2.	Add SSH Brute-force Layer: 
+o	Use the query from your SSH brute-force alert to filter the data.
+o	Set the "Source" to "Elastic Maps Service" to use pre-defined geographical boundaries.
+o	Select source.geo.country_name as the field to visualize on the map. This will color-code countries based on the number of SSH brute-force attempts originating from them.
+3.	Add RDP Brute-force Layer: 
+o	Repeat the steps above, but use the query from your RDP brute-force alert.
+o	Ensure you select the same "Source" (Elastic Maps Service) and use source.geo.country_name for consistency.
+Now I have a single map that displays both SSH and RDP brute-force attacks, giving me a clear visual representation of the global threat landscape targeting my honeypot network.
+Day 18: Introduction to Command and Control
+Today, I'm diving into the world of Command and Control (C2) frameworks. These are the tools and infrastructure that attackers use to communicate with and control compromised systems. Understanding how C2 works is crucial for defenders to detect and disrupt malicious activities.
+Day 19: Creating an Attack Diagram
+To better understand and plan my attack simulations, I'm creating a diagram that outlines the typical stages of a cyberattack:
+1.	Initial Access: How the attacker gains a foothold in the network (e.g., phishing, exploiting vulnerabilities).
+2.	Discovery: The attacker explores the network to identify valuable assets and information.
+3.	Defense Evasion: The attacker tries to avoid detection by security tools.
+4.	Execution: The attacker runs malicious code on the compromised system.
+5.	Command and Control: The attacker establishes a communication channel to control the compromised system.
+6.	Exfiltration: The attacker steals data or achieves other malicious objectives.
+This diagram will help me visualize the attacker's mindset and identify potential weaknesses in my defenses.
+Day 20: Mythic Setup – Building My Attacker Lair
+Time to get hands-on with Mythic, a powerful C2 framework! I'm setting up a Mythic server on Vultr.com.
+Here's how:
+1.	Deploy a New Server: 
+o	On Vultr.com, deploy a new Ubuntu Server instance (similar to Day 3). Make sure this server is within your VPC.
+2.	Install Mythic: 
+o	Follow the official Mythic installation instructions (https://docs.mythic-c2.net/) to install Mythic on your Ubuntu server. This typically involves cloning the Mythic repository from GitHub and running the installation script.
+3.	Configure Mythic: 
+o	Create Users: Set up user accounts with appropriate permissions for managing and interacting with Mythic.
+o	Configure Listeners: Listeners define how Mythic agents will communicate with the C2 server (e.g., HTTP, DNS). Configure listeners based on your needs and the attack scenarios you want to simulate.
+o	Payload Types: Familiarize yourself with the different payload types available in Mythic for various operating systems.
+4.	Secure Your Server: 
+o	Firewall: Configure your firewall to restrict access to your Mythic server. Only allow necessary connections (e.g., SSH from your IP address).
+o	Strong Passwords: Use strong, unique passwords for your Mythic user accounts.
 
-  14th Day: Creating alerts and dashboard in Kibana - SSH 
-    On this day, It is time to create an Alert and Dashboard in our Kibana. First thing is that go to humberger icon in our Elastic and select "Discover" Select the agent.name and choose our Linux Agent. Approximately it has 27000+ alerts within 30 days. To filter this and to make a custom alerts, we need the information pertaining to the failed authentication, users, source ip and country. For the failed authentication, I used the field 'system.auth.ssh.event'. For the users, it is 'user.name' field. For the source IP, I used the 'user.ip' field and 'source.geo.country_name' for the country. Then save it. Next is to create an alert by clicking the Alert tab and choose 'create search threshold. Give it a name for Creating a Rule then you can customize the alert threshold. You can set when this alert be triggered. And that how easy to make an alert in Kibana
-	For the creation of the Dashboard. I used the newly created Alert as the basis. First go to the humberger icon then select Dashboard. Then select 'Add Layer' and choose 'Choropleth' because it will be base on the Country Field. Select the Boundaries source from 'Elastic Maps Service' then in the Statistics Source select 'source.geo.country-id. Then here you go, the creation of Dashboard is done.
-  
 
-  15th Day: Remote Desktop Protocol Introduction:
-    This day, I study about Remote Desktop Protocol. RDP is a proprietary protocol developed by Microsoft that allows a user to connect to and control another computer over a network connection. The advantage of RDP are accessiblity, easy troubleshooting and cost saving. 
-	But this advantages has a risk. Attacker can exploit RDP and this will make a way for the attacker to go inside your network. Attackers exploit RDP (Remote Desktop Protocol) in various ways to gain unauthorized access to systems. One of the most common is the Brute-Force Attack. To mitigate RDP attacks, here are some recommendations:
-	  1. Disable the protocol
-	  2. Used Multi-Factor Authentication
-	  3. Used complex password
-	  
-  16th Day: Creating alerts and dashboard in Kibana - RDP Brute Force
-   This day is the continuation (2nd part) of creating alerts and it is for RDP brute force in Kibana. Just like the 1st part we just need to filter the information pertaining the failed authentication, users, user ip and country. The basis of the search is to select the agent for windows and filter the event code 4625. Then follow the steps on what I do on the 1st part
-    
-	
-  17th Day: Creating alerts and dashboard - with maps
-    This day is the continuation again of 3rd part of creating alerts and dashboard. So both the RDP and SSH created Alert will be used. First create a map, go to the humberger icon and select Map. Copy the filter alert that I created for RDP and paste it. Then click add layer. The source should be the country. Then do this for the SSH. And That is it.
-	
-	
-  18th Day: Introduction to Command and Control
-    This day is the introduction of C2 because this will be our next to build. In the realm of cybersecurity, command and control (C2) takes on a particularly sinister meaning. It refers to the methods and infrastructure that cybercriminals use to communicate with and control compromised systems, often referred to as "bots" or "zombies." C2 serves as the lifeline for attackers, allowing them to send commands, exfiltrate data, and maintain their foothold within a network.
 
-	Understanding C2 is critical for defenders, as disrupting these channels of communication can severely cripple an attacker's ability to operate. C2 mechanisms can vary widely in complexity, from simple scripts and hardcoded IP addresses to sophisticated, multi-layered networks designed to evade detection.
-	
- 
-  19th Day: Creating an Attack Diagram
-    This day is to design a diagram in relation with the Command and Control. The diagram or topology shows the Phases of an attack as follows
-	  1. Initial Acess
-	  2. Discovery
-	  3. Defense Evasion
-	  4. Execution
-	  5. Command and Control
-	  6. Exfiltration
-	 
+Day 21: Mythic Agents – Deploying the Spies
+With my Mythic C2 server ready, it's time to create some agents (payloads) to deploy on my target systems. Mythic is incredibly versatile, allowing me to generate agents for various operating systems, including Windows, Linux, and macOS. These agents will act as my eyes and ears within the target environment, enabling me to execute commands, gather information, and even move laterally across the network.
+Here's how I created and deployed Mythic agents:
+1.	Generate an Agent: 
+o	In the Mythic interface, navigate to the "Agents" tab.
+o	Click on "Create Agent."
+o	Choose the operating system of your target (e.g., Windows).
+o	Select a payload type (e.g., an executable for Windows).
+o	Configure any additional options, such as the listener to use for communication with the C2 server.
+o	Click "Generate Agent."
+o	Download the generated agent file.
+2.	Deploy the Agent: 
+o	For this simulation, I'll be deploying the agent manually to my Windows Server. In a real-world scenario, an attacker might use phishing emails, malicious websites, or other techniques to deliver the payload.
+o	Copy the agent file to your Windows Server (e.g., using RDP).
+3.	Execute the Agent: 
+o	On the Windows Server, open a command prompt or PowerShell console and execute the agent file.
+o	The agent will establish a connection to your Mythic C2 server.
+4.	Interact with the Agent: 
+o	In the Mythic interface, you should now see the active agent.
+o	You can use the Mythic interface to interact with the agent, execute commands, and retrieve information from the compromised system.
+Day 22: Kibana Alerts for Mythic – Spotting the C2
+Now, let's shift gears and put on our defender hats. How do we detect Mythic C2 activity in our network? That's where the power of the ELK stack comes into play. Mythic agents communicate with the C2 server, generating network traffic and creating events that we can analyze.
+Here's how I set up Kibana alerts for Mythic:
+1.	Identify Mythic Traffic Patterns: 
+o	Mythic offers various communication profiles (HTTP, DNS, etc.). Understand the traffic patterns associated with the profile you're using.
+o	For example, if using HTTP, look for unusual user-agent strings, consistent connections to your C2 server's IP address, or specific URI patterns used by Mythic.
+2.	Create Kibana Queries: 
+o	In Kibana's "Discover" tab, create queries to filter events related to your Mythic C2 traffic.
+o	Use fields like source.ip, destination.ip, http.user_agent, http.request.uri, and dns.question.name to identify suspicious activity.
+3.	Set up Alerts: 
+o	In Kibana's "Alerts" tab, create alerts based on your queries.
+o	Configure the alert to trigger when a certain threshold is met (e.g., a specific number of events matching the query within a given time frame).
+o	Choose how you want to be notified (e.g., email, Slack, PagerDuty).
+4.	Build a Dashboard: 
+o	In Kibana's "Dashboards" tab, create a dedicated dashboard to visualize Mythic-related activity.
+o	Include visualizations like maps to show the source of C2 traffic, timelines to track agent activity, and tables to display specific events.
+Day 23: Ticketing Systems in the SOC – Organized Chaos
+In a real-world SOC, things can get hectic with alerts and incidents flying in from all directions. To maintain order and ensure efficient incident response, a ticketing system is essential.
+Why use a ticketing system?
+•	Centralized Tracking: Keep track of all security events, incidents, and investigations in one place.
+•	Organized Workflow: Assign tasks, track progress, and ensure that nothing falls through the cracks.
+•	Collaboration: Facilitate communication and collaboration among SOC analysts.
+•	Documentation: Maintain a record of all actions taken during an incident.
+•	Metrics and Reporting: Track key metrics and generate reports on SOC performance.
 
-	
-  Day 20: Mythic Setup Tutorial
+Day 24: osTicket Setup – My SOC Help Desk
+Today, I'm setting up osTicket, a popular open-source ticketing system, to manage my SOC workflow.
+Here's how I installed and configured osTicket:
+1.	Download and Install: 
+o	Download the latest version of osTicket from the official website (https://osticket.com/download/).
+o	Upload the files to your web server (you can use a separate server or host it on your ELK server).
+o	Extract the files to your web server's document root (e.g., /var/www/html/).
+o	Access the osTicket setup script in your web browser (e.g., http://<your_server_ip>/osticket/setup/).
+o	Follow the on-screen instructions to complete the installation.
+2.	Configure osTicket: 
+o	Admin Panel: Access the admin panel using the credentials you created during installation.
+o	Email Settings: Configure osTicket to send email notifications (e.g., new ticket alerts, updates).
+o	Departments: Create departments to categorize tickets (e.g., "Security Alerts," "Incident Response").
+o	Agents: Add your SOC analyst accounts as agents in osTicket.
+o	Customization: Explore osTicket's settings to customize the system to your liking (e.g., ticket forms, workflows, branding).
+Day 25: osTicket and ELK Integration – Automated Ticketing
+Now, let's connect the dots between osTicket and our ELK stack. By integrating these two systems, we can automate ticket creation based on Elasticsearch alerts.
+Here's how I integrated osTicket with ELK:
+1.	Install the osTicket API Plugin: 
+o	Download the osTicket API plugin from the osTicket website.
+o	Install the plugin in your osTicket installation.
+2.	Configure Elasticsearch Alerting: 
+o	In Kibana, create an alert based on a specific query (e.g., detection of Mythic C2 traffic).
+o	In the alert's "Actions" section, choose "Webhook."
+o	Configure the webhook to send an HTTP POST request to your osTicket API endpoint.
+o	Include the necessary information in the webhook payload to create a new ticket in osTicket (e.g., subject, description, priority).
+3.	Test the Integration: 
+o	Trigger the Elasticsearch alert and verify that a new ticket is automatically created in osTicket.
+Day 26: SSH Brute-Force Investigation – The Linux Lockdown
+Let's put our SOC skills to the test and investigate a simulated SSH brute-force attack against our Ubuntu Server.
+Here's how I conducted the investigation:
+1.	Analyze SSH Logs in Kibana: 
+o	Go to the "Discover" tab in Kibana and filter for SSH logs from your Ubuntu Server.
+o	Look for failed login attempts with event.action: "failed".
+o	Identify patterns of repeated login attempts from the same IP address or with different usernames.
+2.	Identify the Attacker: 
+o	Use the source.ip field to determine the attacker's IP address.
+o	Use a geolocation service (like https://www.iplocation.net/) to get information about the attacker's location.
+3.	Correlate Events: 
+o	Look for other events that might be related to the SSH brute-force attack, such as successful login attempts, suspicious command execution, or file access.
+4.	Document Findings: 
+o	Create a detailed report of your investigation, including the attack timeline, attacker information, and any compromised accounts.
+5.	Recommend Mitigation Strategies: 
+o	Suggest measures to prevent future SSH brute-force attacks, such as: 
+	Strong passwords: Enforce strong password policies for all user accounts.
+	Account lockout: Implement account lockout policies to prevent repeated login attempts.
+	Multi-factor authentication: Add an extra layer of security with MFA.
+	IP whitelisting: Restrict SSH access to only trusted IP addresses.
+Day 27: RDP Brute-Force Investigation – Securing the Windows Fortress
+It's time to switch hats and become a security investigator! Today, I'm analyzing a simulated RDP brute-force attack against my Windows Server.
+Here's my investigation process:
+1.	Analyze Windows Security Events:
+o	In Kibana, go to the "Discover" tab.
+o	Filter for events from your Windows Server's agent.
+o	Focus on Event ID 4625 (failed logon attempts) and Event ID 4624 (successful logon attempts). Pay close attention to the user.name and source.ip fields.
+2.	Identify Suspicious Patterns:
+o	Look for repeated failed login attempts from the same IP address or using different usernames. This is a strong indicator of a brute-force attack.
+o	Check if there are any successful login attempts following the failed attempts. This could indicate a compromised account.
+3.	Investigate Further:
+o	If you find a successful login, investigate further to see what actions the attacker took.
+o	Look for other related events, such as: 
+	Event ID 4768: A Kerberos authentication ticket (TGT) was requested.
+	Event ID 4672: Special privileges were assigned to new logon.
+	Event ID 4720: A user account was created.
+	Command execution logs: Check for suspicious commands executed by the attacker.
+	File access logs: Look for any unauthorized access or modification of files.
+4.	Document Findings:
+o	Create a detailed report summarizing your investigation, including the attack timeline, the attacker's IP address and location, the targeted accounts, and any evidence of successful compromise.
+5.	Recommend Mitigation Strategies:
+o	Suggest measures to strengthen RDP security and prevent future brute-force attacks, such as: 
+	Strong Passwords: Enforce strong and unique passwords for all user accounts.
+	Account Lockout: Implement account lockout policies to block repeated login attempts.
+	Multi-Factor Authentication (MFA): Require MFA for all RDP connections.
+	Network Level Authentication (NLA): Enforce NLA to require user authentication before a full RDP session is established.
+	Restrict RDP Access: Limit RDP access to only trusted IP addresses or use a VPN.
+Day 28: Mythic Agent Investigation – Unmasking the Attacker
+Today, I'm switching back to my attacker mindset to understand how Mythic agents behave in the wild. I'll investigate the activities of my deployed Mythic agents, analyzing their command history and any attempts to exfiltrate data.
+Here's my investigation approach:
+1.	Analyze Network Traffic:
+o	In Kibana, examine network traffic logs for communication between my target servers (Windows and Ubuntu) and my Mythic C2 server.
+o	Look for patterns related to the Mythic communication profile you're using (HTTP, DNS, etc.).
+o	Identify the commands sent from the C2 server to the agents and the responses sent back.
+2.	Review Command History:
+o	In the Mythic interface, review the command history for each agent.
+o	Analyze the commands executed by the attacker, looking for reconnaissance activities, privilege escalation attempts, or attempts to access sensitive data.
+3.	Detect Data Exfiltration:
+o	Check for any signs of data being transferred from the compromised servers to the C2 server.
+o	Look for unusual file access patterns, data transfer commands, or suspicious network connections.
+4.	Document and Analyze:
+o	Document the agent's activities, the attacker's objectives, and the techniques used.
+o	Analyze the effectiveness of your defenses in detecting and mitigating the Mythic agent's actions.
+Day 29: Elastic Defend Setup – Endpoint Security
+To further enhance my SOC's capabilities, I'm exploring Elastic Defend, an endpoint security solution that provides real-time threat detection and response.
+Here's how I set up Elastic Defend:
+1.	Install Elastic Agent with Endpoint Security: 
+o	In Kibana's Fleet section, create a new agent policy with the "Endpoint Security" integration enabled.
+o	Enroll a new agent on your Windows and Ubuntu servers using this policy.
+2.	Configure Elastic Defend: 
+o	In Kibana, go to "Security" > "Endpoint Security."
+o	Configure security policies, such as: 
+	Prevention: Rules to block malicious activity (e.g., malware execution).
+	Detection: Rules to detect suspicious behavior (e.g., unusual process activity).
+	Response: Actions to take in response to threats (e.g., kill processes, quarantine files).
+3.	Monitor Endpoint Activity: 
+o	Use the Elastic Defend dashboards to monitor endpoint activity, security events, and threat detections.
+Day 30: Log Troubleshooting – When Things Get Messy
+Log analysis isn't always straightforward. Sometimes, things go wrong, and I need to troubleshoot log-related issues.
+Here are some common challenges and troubleshooting steps:
+1.	Missing Logs:
+o	Check data sources and log forwarding configurations.
+o	Verify Elasticsearch indexing and Kibana queries.
+o	Investigate log rotation policies.
+2.	Noisy Logs:
+o	Refine log filters and adjust log levels.
+o	Implement log aggregation and use anomaly detection.
+3.	Elasticsearch Issues:
+o	Check Elasticsearch health and analyze logs.
+o	Monitor resource usage and optimize queries.
+o	Consult the Elasticsearch documentation.
+4.	Performance Problems:
+o	Analyze slow logs and identify performance bottlenecks.
+o	Correlate logs with system metrics.
+5.	Sudden Issues:
+o	Review recent changes, system updates, and external factors.
+General Troubleshooting Tips:
+•	Start with the basics (connections, configurations, permissions).
+•	Isolate the problem by checking different components.
+•	Document your findings.
+•	Don't hesitate to seek help from the community.
+This concludes my 30-day SOC challenge! I've learned a lot about building and operating a security operations center, and I'm excited to continue exploring the world of cybersecurity.
 
-Alright, let's get our hands dirty and set up our own attacker infrastructure! Today, we'll walk through setting up a Mythic C2 server on Vultr.com.  First things first, head over to Vultr and spin up a new server instance. I recommend choosing an Ubuntu Server with decent specs—you don't need anything too powerful, but make sure it has enough resources to handle the C2 activity. Once your server is running,  it's time to install Mythic. You can grab the latest version from their GitHub repository and follow their installation instructions.  Don't forget to configure Mythic with your desired settings, like creating user accounts and setting up listeners.  Oh, and one crucial thing:  secure your server! Make sure to configure your firewall to restrict access and use strong SSH keys. We don't want any unwanted visitors poking around our attacker playground!
-
-Day 21:  Mythic Agent Setup
-
-Now that our C2 server is up and running, let's create some agents to deploy on our target systems. Mythic makes this super easy, allowing you to generate payloads for different operating systems like Windows, Linux, and macOS.  Think of these agents as our little spies, ready to infiltrate and execute our commands.  We can deliver them through various methods, like email attachments or even a good old-fashioned USB drive. Once the agent is on the target system, it will connect back to our C2 server, giving us remote control.  From there, we can run commands, steal data, and basically do whatever we want (within the confines of our ethical hacking challenge, of course!).
-
-Day 22: Kibana Alerts for Mythic
-
-We've got our attacker infrastructure ready, but how do we detect this activity from a defender's perspective? That's where our trusty ELK stack comes in!  Mythic agents communicate with the C2 server, generating network traffic that we can analyze.  We'll dive into Kibana and craft some queries to filter out Mythic-related events.  We'll also set up alerts to notify us of any suspicious Mythic activity.  And to top it off, we'll build a fancy Kibana dashboard to visualize these attacks in real-time.  Think of it as our command center for monitoring and responding to these simulated threats.
-
-Day 23: Ticketing Systems in the SOC
-
-Let's take a break from the technical stuff and talk about organization.  In a real-world SOC, things can get hectic with alerts flying in from all directions.  That's where a ticketing system comes in handy.  It helps us keep track of all the security events, assign them to analysts, and ensure that nothing falls through the cracks.  We'll explore the different types of ticketing systems out there and discuss the key features that make them effective for incident response and collaboration within the SOC.
-
-Day 24:  osTicket Setup
-
-Time to get our hands dirty again!  Today, we'll install and configure osTicket, a popular open-source ticketing system.  We'll walk through the entire process, from downloading and installing osTicket to configuring email notifications, setting up departments, and adding our SOC analysts as agents.  We'll even explore some customization options to make osTicket fit seamlessly into our SOC workflow.
-
-Day 25:  osTicket and ELK Integration
-
-Now, let's connect the dots between our ticketing system and our log analysis platform.  Wouldn't it be awesome if Elasticsearch could automatically create tickets in osTicket whenever it detects a critical security event?  Well, that's exactly what we'll do today! We'll configure Elasticsearch alerts to trigger new tickets in osTicket, enriching them with valuable data from our logs.  This integration will streamline our incident response process, allowing us to quickly investigate and respond to threats.
-
-Day 26:  SSH Brute-Force Investigation
-
-Let's put our SOC skills to the test and investigate a simulated SSH brute-force attack.  We'll dive deep into our SSH logs within Kibana, analyze the attack patterns, and pinpoint the attacker's IP address and location.  By correlating different events, we'll piece together the attack timeline and understand the attacker's methods.  Finally, we'll document our findings, draw conclusions, and recommend mitigation strategies to prevent future attacks.
-
-Day 27:  RDP Brute-Force Investigation
-
-Similar to our SSH investigation, today we'll tackle an RDP brute-force attack.  We'll sift through Windows security events, focusing on those related to RDP login attempts.  We'll identify any compromised accounts, analyze suspicious login patterns, and investigate any signs of lateral movement or privilege escalation.  Our goal is to understand the full extent of the attack and contain the damage.
-
-Day 28:  Mythic Agent Investigation
-
-Remember that Mythic C2 infrastructure we set up?  It's time to see it in action from a defender's perspective.  We'll analyze our network traffic logs to detect any signs of Mythic agent activity.  We'll then delve into the agent's command history to understand the attacker's objectives and uncover any data exfiltration attempts.  This investigation will give us valuable insights into how attackers use C2 frameworks to compromise systems and carry out their malicious activities.
-
-Day 29: Elastic Defend Setup
-
-Let's add another layer of security to our SOC by introducing Elastic Defend.  This endpoint security solution provides real-time threat detection and response capabilities.  We'll install and configure Elastic Defend agents on our systems, learn how to monitor endpoint activity, and explore how to respond to security incidents directly on the endpoints.  This will strengthen our defenses and give us greater visibility into what's happening on our systems.
-
-Day 30: Log Troubleshooting
-
-Log analysis isn't always smooth sailing.  Sometimes we encounter challenges like noisy logs, missing data, or even issues with Elasticsearch itself.  On this final day, we'll share some common log analysis challenges and provide troubleshooting tips to overcome them.  We'll also discuss how to use logs to diagnose performance problems and ensure that our ELK stack is running smoothly.
-
-I hope this is more in line with what you were looking for! I've tried to make the descriptions more engaging and conversational, while still providing valuable information for your blog posts.  Let me know if you have any other questions or need further assistance. Good luck with the rest of your challenge!
-   
-General Tips for Log Troubleshooting:
-
-Start with the basics: Check connections, configurations, and permissions before diving into complex debugging.
-Divide and conquer: Isolate the problem by systematically checking different components of your logging pipeline.
-Document your findings: Keep detailed notes of your troubleshooting steps and observations.
-Don't be afraid to ask for help: The Elasticsearch and Kibana communities are great resources for getting support.   
-   
-   
-   
    
    
    
